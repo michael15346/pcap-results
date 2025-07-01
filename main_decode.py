@@ -5,8 +5,7 @@ from const import PCAP_FILE_HEADER_LEN, PCAP_PACKET_HEADER_LEN
 from encoder import Decoder, PCAP, IPv4, TCP
 import numpy as np
 import pandas as pd
-from torch.utils.data import Dataset, random_split
-from sklearn import linear_model
+from torch.utils.data import Dataset
 
 
 def to_dataset(packet: PCAP):
