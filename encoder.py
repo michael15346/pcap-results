@@ -44,6 +44,7 @@ class TCP:
     checksum: byte2
     urgent_pointer: byte2
     options: TCPOptions
+    payload_size: int
 
 
 @dataclass
@@ -146,7 +147,7 @@ class Decoder:
             ip_ecn = p[il_off + 1] % 4
             ip_proto = p[il_off+9]
 
-            tl_len = big2i(p[il_off+2:il_off+4]) - 4*ip_ihl
+            tl_len = big2i(p[il_off+2:il_off+4])
             ip_id = big2i(p[il_off+4:il_off+6])
             ip_reserved = p[il_off+6] // 128
             ip_df = p[il_off+6] // 64 % 2
@@ -258,6 +259,11 @@ class Decoder:
                     i += 4
                 else:
                     assert False, f'unknown case {opt_kind}'
+            #payload_size = len(p[i:]) # wrong
+            if ether_type == IPv4:
+                payload_size = tl_len + il_off - i + 4 * ip_ihl
+            else:
+                payload_size = -1
             pcap.payload.payload.payload = TCP(tcp_src, tcp_dst, tcp_seq,
                                                tcp_ack, tcp_data_off,
                                                tcp_reserved, tcp_flag_cwr,
@@ -266,7 +272,7 @@ class Decoder:
                                                tcp_flag_rst, tcp_flag_syn,
                                                tcp_flag_fin, tcp_win,
                                                tcp_checksum, tcp_urg_ptr,
-                                               options)
+                                               options, payload_size)
 
         elif ip_proto == IpType.UDP:
             udp_src = big2i(p[tl_off:tl_off+2])
